@@ -96,58 +96,6 @@ These should probably be pulled out into a unit test file. These are the test
 cases provided for each problem set.
 */
 
-func test_set1_ch1() {
-    // TODO line lengths come on
-    var input string = "49276d206b696c6c696e6720796f757220627261696e206c696b65206120706f69736f6e6f7573206d757368726f6f6d";
-    var expected_output string = "SSdtIGtpbGxpbmcgeW91ciBicmFpbiBsaWtlIGEgcG9pc29ub3VzIG11c2hyb29t";
-
-    var data []byte = DecodeHex(input);
-    var output string = EncodeBase64(data);
-
-    if output != expected_output {
-        fmt.Printf("FAIL Challenge 1\nActual:   %v\nExpected: %v\n", output, expected_output);
-    } else {
-        fmt.Println("SUCCESS Challenge 1");
-    }
-}
-
-func test_set1_ch2() {
-    var in1 string = "1c0111001f010100061a024b53535009181c";
-    var in2 string = "686974207468652062756c6c277320657965";
-    var expected_out string = "746865206b696420646f6e277420706c6179";
-
-    a := DecodeHex(in1);
-    b := DecodeHex(in2);
-    var output string = EncodeHex(DecryptXor(a, b));
-
-    if output != expected_out {
-        fmt.Printf("FAIL Challenge 2\nActual:   %v\nExpected: %v\n", output, expected_out);
-    } else {
-        fmt.Println("SUCCESS Challenge 2");
-    }
-}
-
-func test_set1_ch3_DecryptXor_func() {
-    // This problem gets interesting, and forces me to really consider if I want
-    // this code to be as wild as it currently is. For now, intermediate test
-    // cases, since the problems aren't so trivial that they're solved in one
-    // step.
-    // TODO(dylan): this is not a challenge it is a test case for DecryptXor
-    var in1 string = "123456"
-    var in2 string = "01"
-
-    var expected_out string = "133557";
-
-    a := DecodeHex(in1);
-    b := DecodeHex(in2);
-    var output string = EncodeHex(DecryptXor(a, b));
-
-    if output != expected_out {
-        fmt.Printf("FAIL Challenge 3\nActual:   %v\nExpected: %v\n", output, expected_out);
-    } else {
-        fmt.Println("PARTIAL Challenge 3");
-    }
-}
 
 // TODO helper function move it
 func decode_single_byte_xor(encoded []byte) ([]byte, int, byte) {
@@ -218,9 +166,6 @@ func test_set1_ch4() {
 }
 
 func main() {
-    test_set1_ch1();
-    test_set1_ch2();
-    test_set1_ch3_DecryptXor_func();
     test_set1_ch3();
     test_set1_ch4();
 }
