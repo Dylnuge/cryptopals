@@ -1,15 +1,16 @@
-package cryptopals
+package main
 
 import (
     "bytes"
     "fmt"
     "io/ioutil"
+    "github.com/dylnuge/cryptopals/cryptolib"
 )
 
-func score_english_ascii(guess []byte) int {
+func score_english_ascii(guess []byte) float64 {
     // Starting with the extremely naive and effectively disqualifying things
     // that use control characters. Numbers are neutral. Alpha characters add.
-    var score int = 0;
+    var score float64 = 0;
 
     for i := 0; i < len(guess); i++ {
         eval_char := guess[i];
@@ -48,42 +49,12 @@ func score_english_ascii(guess []byte) int {
         case eval_char >= '0' && eval_char <= '9':
             score -= 10;
         // Common letters
-        // TODO this has gotten out of hand just build a map with letter scores
-        case eval_char == 'E' || eval_char == 'e':
-            score += 12;
-        case eval_char == 'T' || eval_char == 't':
-            score += 9;
-        case eval_char == 'A' || eval_char == 'a':
-            score += 8;
-        case eval_char == 'O' || eval_char == 'o':
-            score += 8;
-        case eval_char == 'I' || eval_char == 'i':
-            score += 7;
-        case eval_char == 'N' || eval_char == 'n':
-            score += 7;
-        case eval_char == 'S' || eval_char == 's':
-            score += 6;
-        case eval_char == 'H' || eval_char == 'h':
-            score += 6;
-        case eval_char == 'R' || eval_char == 'r':
-            score += 6;
-        case eval_char == 'D' || eval_char == 'd':
-            score += 4;
-        case eval_char == 'L' || eval_char == 'l':
-            score += 4;
-        case eval_char == 'C' || eval_char == 'c':
-            score += 3;
-        case eval_char == 'U' || eval_char == 'u':
-            score += 3;
-        case eval_char == 'M' || eval_char == 'm':
-            score += 2;
-        // Remaining letters
-        case eval_char >= 'A' && eval_char <= 'Z':
-            score += 1;
-        case eval_char >= 'a' && eval_char <= 'a':
-            score += 1;
         case eval_char == ' ':
-            score += 15;
+            score += 1;
+        default:
+            eval_arr := make([]byte, 1)
+            eval_arr[0] = eval_char
+            score += cryptolib.NaiveEnglishASCIIScore(eval_arr)
         }
     }
 
@@ -98,8 +69,8 @@ cases provided for each problem set.
 
 
 // TODO helper function move it
-func decode_single_byte_xor(encoded []byte) ([]byte, int, byte) {
-    var best_score int = -100000;
+func decode_single_byte_xor(encoded []byte) ([]byte, float64, byte) {
+    var best_score float64 = -100000;
     var best_key byte;
     var best_msg []byte = make([]byte, len(encoded));
 
@@ -107,7 +78,7 @@ func decode_single_byte_xor(encoded []byte) ([]byte, int, byte) {
         var can_key []byte = make([]byte, 1);
         var can_msg []byte = make([]byte, len(encoded));
         can_key[0] = byte(i);
-        can_msg = DecryptXor(encoded, can_key);
+        can_msg = cryptolib.DecryptXor(encoded, can_key);
         score := score_english_ascii(can_msg);
 
         if score > best_score {
@@ -125,7 +96,7 @@ func test_set1_ch3() {
     // coming in the morning.
 
     var in string = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
-    var encoded []byte = DecodeHex(in);
+    var encoded []byte = cryptolib.DecodeHex(in);
 
     // XORed against a single "character" to me means any byte. I'm not assuming
     // the key is an alphanumeric ASCII code point.
@@ -145,7 +116,7 @@ func test_set1_ch4() {
     }
 
     data_lines := bytes.Split(data, []byte("\n"));
-    best_score := -10000;
+    best_score := -10000.0;
     var best_msg []byte;
     var best_key byte;
     for i := 0; i < len(data_lines); i++ {

@@ -1,4 +1,4 @@
-package cryptopals
+package cryptolib
 
 import "testing"
 
