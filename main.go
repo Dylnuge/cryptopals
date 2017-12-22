@@ -80,10 +80,49 @@ func score_english_ascii(guess []byte) int {
             // And the rest of the control characters. The separator characters
             // might deserve consideration, but I don't see them a lot.
             score -= 100;
+        case eval_char > 127:
+            // Non ASCII codepoints
+            score -= 100;
+        case eval_char == 0 || eval_char == 10 || eval_char == 13:
+            // These might appear, but a lot of them should reduce likelihood.
+            score -= 5;
+        // Common letters
+        // TODO this has gotten out of hand just build a map with letter scores
+        case eval_char == 'E' || eval_char == 'e':
+            score += 12;
+        case eval_char == 'T' || eval_char == 't':
+            score += 9;
+        case eval_char == 'A' || eval_char == 'a':
+            score += 8;
+        case eval_char == 'O' || eval_char == 'o':
+            score += 8;
+        case eval_char == 'I' || eval_char == 'i':
+            score += 7;
+        case eval_char == 'N' || eval_char == 'n':
+            score += 7;
+        case eval_char == 'S' || eval_char == 's':
+            score += 6;
+        case eval_char == 'H' || eval_char == 'h':
+            score += 6;
+        case eval_char == 'R' || eval_char == 'r':
+            score += 6;
+        case eval_char == 'D' || eval_char == 'd':
+            score += 4;
+        case eval_char == 'L' || eval_char == 'l':
+            score += 4;
+        case eval_char == 'C' || eval_char == 'c':
+            score += 3;
+        case eval_char == 'U' || eval_char == 'u':
+            score += 3;
+        case eval_char == 'M' || eval_char == 'm':
+            score += 2;
+        // Remaining letters
         case eval_char >= 'A' && eval_char <= 'Z':
             score += 1;
         case eval_char >= 'a' && eval_char <= 'a':
             score += 1;
+        case eval_char == ' ':
+            score += 5;
         }
     }
 
