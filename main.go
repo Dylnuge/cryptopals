@@ -1,9 +1,11 @@
 package main
 
 import (
+    "bytes"
     "encoding/base64"
     "encoding/hex"
     "fmt"
+    "io/ioutil"
 )
 
 /* Bytes to Pretty Prints Manipulation Functions
@@ -86,6 +88,20 @@ func score_english_ascii(guess []byte) int {
         case eval_char == 0 || eval_char == 10 || eval_char == 13:
             // These might appear, but a lot of them should reduce likelihood.
             score -= 5;
+        case eval_char >= 35 && eval_char <= 47:
+            // These might appear, but a lot of them should reduce likelihood.
+            score -= 30;
+        case eval_char >= 58 && eval_char <= 62:
+            // These might appear, but a lot of them should reduce likelihood.
+            score -= 30;
+        case eval_char >= 91 && eval_char <= 96:
+            // These might appear, but a lot of them should reduce likelihood.
+            score -= 30;
+        case eval_char >= 123 && eval_char <= 127:
+            // These might appear, but a lot of them should reduce likelihood.
+            score -= 30;
+        case eval_char >= '0' && eval_char <= '9':
+            score -= 10;
         // Common letters
         // TODO this has gotten out of hand just build a map with letter scores
         case eval_char == 'E' || eval_char == 'e':
@@ -122,7 +138,7 @@ func score_english_ascii(guess []byte) int {
         case eval_char >= 'a' && eval_char <= 'a':
             score += 1;
         case eval_char == ' ':
-            score += 5;
+            score += 15;
         }
     }
 
@@ -188,15 +204,8 @@ func test_set1_ch3_raw_xor_func() {
     }
 }
 
-func test_set1_ch3() {
-    // And this "real" function isn't a test function at all. I sense a refactor
-    // coming in the morning.
-
-    var in string = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
-    var encoded []byte = in_hex(in);
-
-    // XORed against a single "character" to me means any byte. I'm not assuming
-    // the key is an alphanumeric ASCII code point.
+// TODO helper function move it
+func decode_single_byte_xor(encoded []byte) ([]byte, int, byte) {
     var best_score int = -100000;
     var best_key byte;
     var best_msg []byte = make([]byte, len(encoded));
@@ -215,7 +224,49 @@ func test_set1_ch3() {
         }
     }
 
+    return best_msg, best_score, best_key;
+}
+
+func test_set1_ch3() {
+    // And this "real" function isn't a test function at all. I sense a refactor
+    // coming in the morning.
+
+    var in string = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
+    var encoded []byte = in_hex(in);
+
+    // XORed against a single "character" to me means any byte. I'm not assuming
+    // the key is an alphanumeric ASCII code point.
+    best_msg, best_score, best_key := decode_single_byte_xor(encoded);
+
     fmt.Println("Challenge 3 decoding completed")
+    fmt.Printf("Plaintext: %v\n", string(best_msg))
+    fmt.Printf("Key: %v\n", best_key)
+    fmt.Printf("Candidate Message Score: %v\n", best_score)
+}
+
+func test_set1_ch4() {
+    data, err := ioutil.ReadFile("data/4.txt");
+    if err != nil {
+        fmt.Printf("ERROR in file read %v\n", err);
+        return;
+    }
+
+    data_lines := bytes.Split(data, []byte("\n"));
+    best_score := -10000;
+    var best_msg []byte;
+    var best_key byte;
+    for i := 0; i < len(data_lines); i++ {
+        line := data_lines[i];
+        can_msg, can_score, can_key := decode_single_byte_xor(line);
+
+        if can_score > best_score {
+            best_score = can_score;
+            best_msg = can_msg;
+            best_key = can_key;
+        }
+    }
+
+    fmt.Println("Challenge 4 decoding completed")
     fmt.Printf("Plaintext: %v\n", string(best_msg))
     fmt.Printf("Key: %v\n", best_key)
     fmt.Printf("Candidate Message Score: %v\n", best_score)
@@ -226,4 +277,5 @@ func main() {
     test_set1_ch2();
     test_set1_ch3_raw_xor_func();
     test_set1_ch3();
+    test_set1_ch4();
 }
