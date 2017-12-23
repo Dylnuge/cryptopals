@@ -70,7 +70,7 @@ func challenge4() {
     fmt.Printf("Candidate Message Score: %v\n", bestScore)
 }
 
-/* Below code is all for problem 5. I should start breaking these out into
+/* Below code is all for problem 6. I should start breaking these out into
 their own files */
 
 func findCandidateKeysize(input []byte) int {
@@ -79,7 +79,6 @@ func findCandidateKeysize(input []byte) int {
     bestHamming := 10000.0
     for keysize := 2; keysize <= 40; keysize++ {
         hamming := cryptolib.AverageBlockHammingDist(input, uint(keysize), 10)
-
         if hamming < bestHamming {
             bestHamming = hamming
             bestKeysize = keysize
