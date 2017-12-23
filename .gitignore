@@ -1,2 +1,3 @@
-# Ignore build artifacts
-cryptopals
+# Ignore build artifacts, but not their directories
+pset*
+!pset*/
