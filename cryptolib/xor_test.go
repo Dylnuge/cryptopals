@@ -38,3 +38,15 @@ func TestDecryptXorSingleCharKey(t *testing.T) {
             in1, in2, output, expected_out)
     }
 }
+
+func TestRepeatingKeyXOR(t *testing.T) {
+    var testin string = "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal"
+    var expect string = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f"
+
+    out := DecryptXor([]byte(testin), []byte("ICE"))
+    out_hex := EncodeHex(out)
+    if expect != out_hex {
+        t.Errorf("DecryptXor(%v, %v) == %v but expected %v",
+            testin, "ICE", out_hex, expect)
+    }
+}
