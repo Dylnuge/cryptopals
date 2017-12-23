@@ -125,7 +125,24 @@ func challenge6() {
     fmt.Printf("%v\n", string(plaintext))
 }
 
+func challenge8() {
+    // Read in the ciphertexts
+    data, err := ioutil.ReadFile("data/8.txt")
+    if err != nil {
+        fmt.Printf("ERROR in file read %v\n", err)
+        return
+    }
+    hexLines := bytes.Split(data, []byte("\n"))
+
+    for i := 0; i < len(hexLines); i++ {
+        line := cryptolib.DecodeHex(string(hexLines[i]))
+        if cryptolib.DetectAesEcbMode(line) {
+            fmt.Printf("AES detected on line %v\n", cryptolib.EncodeHex(line))
+        }
+    }
+}
+
 // Main function just runs whatever exercise I'm currently working on
 func main() {
-    challenge6()
+    challenge8()
 }
