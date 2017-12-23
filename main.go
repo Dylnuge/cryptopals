@@ -125,7 +125,27 @@ func challenge6() {
     fmt.Printf("%v\n", string(plaintext))
 }
 
+func challenge7() {
+    // Step 1: Read in the keyfile and decode it from base64
+    data, err := ioutil.ReadFile("data/7.txt")
+    if err != nil {
+        fmt.Printf("ERROR in file read %v\n", err)
+        return
+    }
+    data = cryptolib.DecodeBase64(string(data))
+
+    // Step 2: Decrypt it using the key provided
+    key := []byte("YELLOW SUBMARINE")
+    out, err := cryptolib.DecryptAesEcb(data, key)
+    if err != nil {
+        fmt.Printf("ERROR in AES decode %v\n", err)
+        return
+    }
+
+    fmt.Printf("Plaintext:\n%v\n", string(out))
+}
+
 // Main function just runs whatever exercise I'm currently working on
 func main() {
-    challenge6()
+    challenge7()
 }
