@@ -4,6 +4,7 @@ package cryptolib
 // There's a neat little citation nest here but I pulled these from Wikipedia
 // https://en.wikipedia.org/wiki/Letter_frequency
 var EnglishAlphabetFrequencies map[byte]float64 = map[byte]float64{
+    ' ': 0.16000, // Finding an actual citation for space frequency is hard...
     'e': 0.12702,
     't': 0.09056,
     'a': 0.08167,
@@ -120,6 +121,86 @@ func NaiveEnglishASCIIScore(text []byte) float64 {
             return -1;
         }
     }
+
+    return score;
+}
+
+
+/**
+Score candidate text based on how close its frequencies map to expectations.
+
+Basically, build a map of all the letters we find, compute how frequent those
+letters were in the candidate text, compare it against the cannonical frequency
+map. We'll include characters that aren't in the map in the denominator but not
+the numerator unless those characters are spaces; this is a hack, and I should
+really build a frequency map that includes spaces and punctuation.
+
+Since this is a difference function, lower values are better; 0.0 indicates
+a perfect match with expected frequencies (highly unlikely). This is hacky and
+annoying on two levels: the other scoring function is higher-better, and -1 is
+still a special case for a rejected candidate text, since negative outputs aren't
+possible.
+
+The naïve function is so clearly worse than this that I might just delete it,
+though.
+*/
+func FrequenciesDifferenceEnglishASCIIScore(text []byte) float64 {
+    var score float64 = 0;
+
+    candidate_count := map[byte]int{}
+
+    // Sanity check, if we have an empty string, stop and reject
+    if len(text) == 0 {
+        return -1
+    }
+
+    // Build a map from letters to their counts in the string
+    for i:= 0; i < len(text); i++ {
+        eval_char := text[i]
+        // If the character is in our rejection set, reject it
+        if ASCIIAbnormalControlCharacters[eval_char] || eval_char > 127 {
+            return -1.0;
+        }
+        // Convert uppercase letters to lowercase letters
+        if eval_char >= 'A' && eval_char <= 'Z' {
+            eval_char += 32
+        }
+        // Map lowercase letters into the frequency chart
+        if (eval_char >= 'a' && eval_char <= 'z') || (eval_char == ' ') {
+            candidate_count[eval_char] += 1
+        } else {
+            // Count everything else where "NUL" would go
+            candidate_count['\x00'] += 1
+        }
+    }
+
+
+    // For each English letter, compute square difference from expected
+    // frequency and add it to the score
+    for i := 0; i < 26; i++ {
+        var letter byte = 'a' + byte(i)
+        // As a go novitiate, I feel compelled to note that if the letter
+        // was never found, the map returns the default empty value, which
+        // happens to be 0 for numeric types. Experienced go coders probably
+        // didn't even blink at this line but it sure scares me.
+        freq := float64(candidate_count[letter]) / float64(len(text))
+        expected_freq := EnglishAlphabetFrequencies[letter]
+        square_diff := (freq - expected_freq) * (freq - expected_freq)
+        score += square_diff
+    }
+
+    // Add in the space (TODO dylan make this code cleaner)
+    var space byte = ' ';
+    freq := float64(candidate_count[space]) / float64(len(text))
+    expected_freq := EnglishAlphabetFrequencies[space]
+    square_diff := (freq - expected_freq) * (freq - expected_freq)
+    score += square_diff
+
+    // And the error from non-matched characters (who we assume we'll see few
+    // if any of), again TODO to clean this up
+    null_freq := float64(candidate_count['\x00']) / float64(len(text))
+    null_square_diff := null_freq * null_freq
+    score += null_square_diff
 
     return score;
 }

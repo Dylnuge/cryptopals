@@ -16,7 +16,7 @@ cases provided for each problem set.
 
 // TODO helper function move it
 func decode_single_byte_xor(encoded []byte) ([]byte, float64, byte) {
-    var best_score float64 = -100000;
+    var best_score float64 = 100000;
     var best_key byte;
     var best_msg []byte = make([]byte, len(encoded));
 
@@ -25,9 +25,10 @@ func decode_single_byte_xor(encoded []byte) ([]byte, float64, byte) {
         var can_msg []byte = make([]byte, len(encoded));
         can_key[0] = byte(i);
         can_msg = cryptolib.DecryptXor(encoded, can_key);
-        score := cryptolib.NaiveEnglishASCIIScore(can_msg);
+        score := cryptolib.FrequenciesDifferenceEnglishASCIIScore(can_msg);
 
-        if score > best_score {
+        // -1 is a rejected string, don't let it be the best
+        if score != -1 && score < best_score {
             best_score = score;
             best_msg = can_msg;
             best_key = can_key[0];
@@ -37,7 +38,7 @@ func decode_single_byte_xor(encoded []byte) ([]byte, float64, byte) {
     return best_msg, best_score, best_key;
 }
 
-func test_set1_ch3() {
+func set1_ch3() {
     // And this "real" function isn't a test function at all. I sense a refactor
     // coming in the morning.
 
@@ -54,7 +55,7 @@ func test_set1_ch3() {
     fmt.Printf("Candidate Message Score: %v\n", best_score)
 }
 
-func test_set1_ch4() {
+func set1_ch4() {
     data, err := ioutil.ReadFile("data/4.txt");
     if err != nil {
         fmt.Printf("ERROR in file read %v\n", err);
@@ -62,14 +63,15 @@ func test_set1_ch4() {
     }
 
     data_lines := bytes.Split(data, []byte("\n"));
-    best_score := -10000.0;
+    best_score := 10000.0;
     var best_msg []byte;
     var best_key byte;
     for i := 0; i < len(data_lines); i++ {
         line := data_lines[i];
-        can_msg, can_score, can_key := decode_single_byte_xor(line);
+        encoded := cryptolib.DecodeHex(string(line))
+        can_msg, can_score, can_key := decode_single_byte_xor(encoded);
 
-        if can_score > best_score {
+        if can_score != -1 && can_score < best_score {
             best_score = can_score;
             best_msg = can_msg;
             best_key = can_key;
@@ -83,6 +85,6 @@ func test_set1_ch4() {
 }
 
 func main() {
-    test_set1_ch3();
-    test_set1_ch4();
+    set1_ch3();
+    set1_ch4();
 }
