@@ -40,6 +40,24 @@ func DecryptXor(cyphertext []byte, key []byte) []byte {
     return out
 }
 
+/**
+Find the single byte key a string has been XORed against.
+
+Given a scoring function to determine how likely a key is to be correct and a
+cyphertext that is assumed to have been XORed against a single byte, finds the
+most likely key.
+
+Inputs:
+    cyphertext []byte: The cyphertext to decrypt.
+    scoreFunc func([]byte) (float64, error): A scoring function where lower
+        numers are considered better scores. First return value should be the
+        score, second should be an optional error which, if present, indicates
+        the score should be rejected.
+
+Outputs:
+    key byte: The key the string has probably been XORed against
+    err error: Returns an error if no possible keys were found
+*/
 func CrackSingleByteXor(cyphertext []byte,
         scoreFunc func([]byte) (float64, error)) (key byte, err error) {
     var score *float64

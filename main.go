@@ -9,14 +9,10 @@ import (
 
 /* Testing functions for problem set 1
 
-These should probably be pulled out into a unit test file. These are the test
-cases provided for each problem set.
+Challenges 1, 2, and 5 are solved in unit tests for cryptolib.
 */
 
 func challenge3() {
-    // And this "real" function isn't a test function at all. I sense a refactor
-    // coming in the morning.
-
     var in string = "1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736"
     var encoded []byte = cryptolib.DecodeHex(in)
 
