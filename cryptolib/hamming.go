@@ -21,3 +21,12 @@ func HammingDist(a []byte, b []byte) int {
     }
     return hammingTotal
 }
+
+// Hamming distance divided by bytesize
+func NormalizedHammingDist(a []byte, b []byte) float64 {
+    hamming := HammingDist(a, b)
+    if hamming == -1 {
+        return -1
+    }
+    return float64(hamming) / float64(len(a))
+}

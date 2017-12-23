@@ -30,6 +30,15 @@ func EncodeHex(raw []byte) string {
     return hex.EncodeToString(raw)
 }
 
+func DecodeBase64(b64_str string) []byte {
+    out, err := base64.StdEncoding.DecodeString(b64_str)
+    if err != nil {
+        fmt.Printf("ERROR in hex decoding %v\n", err)
+        return nil
+    }
+    return out
+}
+
 func EncodeBase64(raw []byte) string {
     return base64.StdEncoding.EncodeToString(raw)
 }

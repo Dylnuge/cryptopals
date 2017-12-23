@@ -84,7 +84,69 @@ func set1_ch4() {
     fmt.Printf("Candidate Message Score: %v\n", best_score)
 }
 
+/* Below code is all for problem 5. I should start breaking these out into
+their own files */
+
+func find_candidate_keysize(input []byte) int {
+    // HACK FOR NOW just do 2 to 40
+    best_keysize := 0
+    best_hamming := 10000.0
+    for keysize := 10; keysize <= 40; keysize++ {
+        hamming := 0.0
+        test_size := 4
+        for i := 0; i < test_size; i++ {
+            // Get the i-th and i+1th block of `keysize` bytes
+            slice1 := input[keysize*i:keysize*(i+1)]
+            slice2 := input[keysize*(i+1):keysize*(i+2)]
+            hamming += cryptolib.NormalizedHammingDist(slice1, slice2)
+        }
+        // Since everything has the same number of test blocks used, this is not
+        // strictly required
+        hamming = hamming / float64(test_size)
+
+        if hamming < best_hamming {
+            best_hamming = hamming
+            best_keysize = keysize
+        }
+    }
+
+    return best_keysize
+}
+
+func solve_ch6() {
+    // Step 1: Read in the keyfile and decode it from base64
+    data, err := ioutil.ReadFile("data/6.txt")
+    if err != nil {
+        fmt.Printf("ERROR in file read %v\n", err)
+        return
+    }
+    data = cryptolib.DecodeBase64(string(data))
+
+    // Step 2: Find a likely candidate for the keysize
+    keysize := find_candidate_keysize(data)
+
+    // Step 3: Create transposed blocks for each byte in the key
+    var blocks [][]byte = make([][]byte, keysize)
+    for i := 0; i < len(data); i++ {
+        blockNum := i % keysize
+        // This is possibly memory management hell, I should really alloc the
+        // right count at the beginning
+        blocks[blockNum] = append(blocks[blockNum], data[i])
+    }
+
+    // Step 4: Solve each transposed block as if single-key XOR
+    var keys []byte = make([]byte, keysize)
+    for i := 0; i < keysize; i++ {
+        _, _, key := decode_single_byte_xor(blocks[i])
+        keys[i] = key
+    }
+
+    // Step 5: Output message as decoded with candidate key
+    plaintext := cryptolib.DecryptXor(data, keys)
+    fmt.Printf("%v\n", string(plaintext))
+}
+
+// Main function just runs whatever exercise I'm currently working on
 func main() {
-    set1_ch3()
-    set1_ch4()
+    solve_ch6()
 }
