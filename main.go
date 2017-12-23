@@ -91,18 +91,8 @@ func find_candidate_keysize(input []byte) int {
     // HACK FOR NOW just do 2 to 40
     best_keysize := 0
     best_hamming := 10000.0
-    for keysize := 10; keysize <= 40; keysize++ {
-        hamming := 0.0
-        test_size := 4
-        for i := 0; i < test_size; i++ {
-            // Get the i-th and i+1th block of `keysize` bytes
-            slice1 := input[keysize*i:keysize*(i+1)]
-            slice2 := input[keysize*(i+1):keysize*(i+2)]
-            hamming += cryptolib.NormalizedHammingDist(slice1, slice2)
-        }
-        // Since everything has the same number of test blocks used, this is not
-        // strictly required
-        hamming = hamming / float64(test_size)
+    for keysize := 2; keysize <= 40; keysize++ {
+        hamming := cryptolib.AverageBlockHammingDist(input, uint(keysize), 10)
 
         if hamming < best_hamming {
             best_hamming = hamming

@@ -30,3 +30,15 @@ func NormalizedHammingDist(a []byte, b []byte) float64 {
     }
     return float64(hamming) / float64(len(a))
 }
+
+func AverageBlockHammingDist(text []byte, blockSize, blockCount uint) float64 {
+    hamming := 0.0
+    for i := uint(0); i < blockCount; i++ {
+        // Get the i-th and i+1th block of `blockSize` bytes
+        slice1 := text[blockSize*i:blockSize*(i+1)]
+        slice2 := text[blockSize*(i+1):blockSize*(i+2)]
+        hamming += NormalizedHammingDist(slice1, slice2)
+    }
+    hamming = hamming / float64(blockCount)
+    return hamming
+}
