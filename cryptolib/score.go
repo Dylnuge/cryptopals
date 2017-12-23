@@ -1,5 +1,7 @@
 package cryptolib
 
+import "errors"
+
 // Frequencies of each letter in the English alphabet.
 // There's a neat little citation nest here but I pulled these from Wikipedia
 // https://en.wikipedia.org/wiki/Letter_frequency
@@ -72,7 +74,6 @@ var ASCIIAbnormalControlCharacters map[byte]bool = map[byte]bool{
     127: true, // DEL (shouldn't really be in text)
 }
 
-
 /**
 Score a candidate text based only on each individual character.
 
@@ -84,11 +85,11 @@ There are numerous flaws in this method; for instance, the string "EEEEEE" would
 score higher than "Friend", since "E" is a more frequent letter and therefore
 worth more points outright.
 
-Returns a float score which is 0 if no characters were found, -1 if a rejection
-character was found, and otherwise the sum of the frequencies of the letters.
-Higher scores indicate a more probable plaintext candidate.
+Returns a float score which is the negative sum of the frequencies of the
+encountered characters. Lower scores indicate a more probable plaintext
+candidate.
 */
-func NaiveEnglishASCIIScore(text []byte) float64 {
+func NaiveEnglishASCIIScore(text []byte) (float64, error) {
     var score float64 = 0
 
     for i := 0; i < len(text); i++ {
@@ -97,9 +98,9 @@ func NaiveEnglishASCIIScore(text []byte) float64 {
         // Cases where character is a standard letter
         case eval_char >= 'A' && eval_char <= 'Z':
             eval_char += 32
-            score += EnglishAlphabetFrequencies[eval_char]
+            score -= EnglishAlphabetFrequencies[eval_char]
         case eval_char >= 'a' && eval_char <= 'z':
-            score += EnglishAlphabetFrequencies[eval_char]
+            score -= EnglishAlphabetFrequencies[eval_char]
         case eval_char == ' ':
             // This is a cheap trick, and without it this function is pretty
             // crappy at finding English strings. .16 is (1/6), which comes from
@@ -107,24 +108,24 @@ func NaiveEnglishASCIIScore(text []byte) float64 {
             // we'd expect about 1 in every 6 characters to be a space. But, of
             // course, that requires that the plaintext even has spaces to
             // begin with.
-            score += .16
+            score -= .16
         case ASCIIAbnormalControlCharacters[eval_char]:
             // Character is in the set of control characters we're assuming
             // will never show up in a valid plaintext, so short-circut reject
             // this candidate. There are problems with this (see the comment
             // below), and our abnormal character set might be outright wrong.
-            return -1
+            return 0, errors.New("String has unexpected control characters")
         case eval_char > 127:
             // Non ASCII codepoint. Short-circut reject this string outright.
             // There are some problems with doing this; attack code needs to be
             // nimble, so this might change later. It's easy to break this
             // exploit by dropping a "corrupted" character into an otherwise
             // valid plaintext, for instance.
-            return -1
+            return 0, errors.New("String has non-ASCII codepoints")
         }
     }
 
-    return score
+    return score, nil
 }
 
 
@@ -146,14 +147,14 @@ possible.
 The naïve function is so clearly worse than this that I might just delete it,
 though.
 */
-func FrequenciesDifferenceEnglishASCIIScore(text []byte) float64 {
+func FrequenciesDifferenceEnglishASCIIScore(text []byte) (float64, error) {
     var score float64 = 0
 
     candidate_count := map[byte]int{}
 
     // Sanity check, if we have an empty string, stop and reject
     if len(text) == 0 {
-        return -1
+        return 0, errors.New("Text is empty")
     }
 
     // Build a map from letters to their counts in the string
@@ -161,7 +162,7 @@ func FrequenciesDifferenceEnglishASCIIScore(text []byte) float64 {
         eval_char := text[i]
         // If the character is in our rejection set, reject it
         if ASCIIAbnormalControlCharacters[eval_char] || eval_char > 127 {
-            return -1.0
+            return 0, errors.New("Unexpected or non-ASCII characters")
         }
         // Convert uppercase letters to lowercase letters
         if eval_char >= 'A' && eval_char <= 'Z' {
@@ -204,5 +205,5 @@ func FrequenciesDifferenceEnglishASCIIScore(text []byte) float64 {
     null_square_diff := null_freq * null_freq
     score += null_square_diff
 
-    return score
+    return score, nil
 }

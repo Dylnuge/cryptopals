@@ -1,6 +1,9 @@
 package cryptolib
 
-import "fmt"
+import (
+    "errors"
+    "fmt"
+)
 
 /**
 DecryptXor applies a simple bitwise XOR to a cyphertext.
@@ -35,4 +38,32 @@ func DecryptXor(cyphertext []byte, key []byte) []byte {
     }
 
     return out
+}
+
+func CrackSingleByteXor(cyphertext []byte,
+        scoreFunc func([]byte) (float64, error)) (key byte, err error) {
+    var score *float64
+
+    // Loop through every possible 1-byte key
+    for i:= 0; i <= int(^byte(0)); i++ {
+        candidateKey := []byte{byte(i)}
+        candidatePlaintext := DecryptXor(cyphertext, candidateKey)
+        candidateScore, scoreErr := scoreFunc(candidatePlaintext)
+
+        if scoreErr != nil {
+            // This key doesn't decode properly, and is invalid
+            continue
+        }
+
+        if score == nil || candidateScore < *score{
+            score = &candidateScore
+            key = candidateKey[0]
+        }
+    }
+
+    if score == nil {
+        err = errors.New("No valid candidate keys found")
+    }
+
+    return
 }

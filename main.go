@@ -13,32 +13,7 @@ These should probably be pulled out into a unit test file. These are the test
 cases provided for each problem set.
 */
 
-
-// TODO helper function move it
-func decode_single_byte_xor(encoded []byte) ([]byte, float64, byte) {
-    var best_score float64 = 100000
-    var best_key byte
-    var best_msg []byte = make([]byte, len(encoded))
-
-    for i := 0; i <= int(^byte(0)); i++ {
-        var can_key []byte = make([]byte, 1)
-        var can_msg []byte = make([]byte, len(encoded))
-        can_key[0] = byte(i)
-        can_msg = cryptolib.DecryptXor(encoded, can_key)
-        score := cryptolib.FrequenciesDifferenceEnglishASCIIScore(can_msg)
-
-        // -1 is a rejected string, don't let it be the best
-        if score != -1 && score < best_score {
-            best_score = score
-            best_msg = can_msg
-            best_key = can_key[0]
-        }
-    }
-
-    return best_msg, best_score, best_key
-}
-
-func set1_ch3() {
+func challenge3() {
     // And this "real" function isn't a test function at all. I sense a refactor
     // coming in the morning.
 
@@ -47,63 +22,78 @@ func set1_ch3() {
 
     // XORed against a single "character" to me means any byte. I'm not assuming
     // the key is an alphanumeric ASCII code point.
-    best_msg, best_score, best_key := decode_single_byte_xor(encoded)
+    key, err := cryptolib.CrackSingleByteXor(encoded,
+        cryptolib.FrequenciesDifferenceEnglishASCIIScore)
+    if err != nil{
+        fmt.Println("Challenge 3 decoding FAILED")
+        fmt.Printf("Error: %v\n", err)
+        return
+    }
+
+    plaintext := cryptolib.DecryptXor(encoded, []byte{key})
 
     fmt.Println("Challenge 3 decoding completed")
-    fmt.Printf("Plaintext: %v\n", string(best_msg))
-    fmt.Printf("Key: %v\n", best_key)
-    fmt.Printf("Candidate Message Score: %v\n", best_score)
+    fmt.Printf("Plaintext: %v\n", string(plaintext))
 }
 
-func set1_ch4() {
+func challenge4() {
     data, err := ioutil.ReadFile("data/4.txt")
     if err != nil {
         fmt.Printf("ERROR in file read %v\n", err)
         return
     }
 
-    data_lines := bytes.Split(data, []byte("\n"))
-    best_score := 10000.0
-    var best_msg []byte
-    var best_key byte
-    for i := 0; i < len(data_lines); i++ {
-        line := data_lines[i]
+    dataLines := bytes.Split(data, []byte("\n"))
+    bestScore := 10000.0
+    var bestMsg []byte
+    var bestKey byte
+    for i := 0; i < len(dataLines); i++ {
+        line := dataLines[i]
         encoded := cryptolib.DecodeHex(string(line))
-        can_msg, can_score, can_key := decode_single_byte_xor(encoded)
+        key, err := cryptolib.CrackSingleByteXor(encoded,
+            cryptolib.FrequenciesDifferenceEnglishASCIIScore)
 
-        if can_score != -1 && can_score < best_score {
-            best_score = can_score
-            best_msg = can_msg
-            best_key = can_key
+        if err != nil {
+            // This line had _no_ candidate XOR, so it's not the right one
+            continue;
+        }
+
+        canMsg := cryptolib.DecryptXor(encoded, []byte{key})
+        canScore, _ := cryptolib.FrequenciesDifferenceEnglishASCIIScore(canMsg)
+
+        if canScore < bestScore {
+            bestScore = canScore
+            bestMsg = canMsg
+            bestKey = key
         }
     }
 
     fmt.Println("Challenge 4 decoding completed")
-    fmt.Printf("Plaintext: %v\n", string(best_msg))
-    fmt.Printf("Key: %v\n", best_key)
-    fmt.Printf("Candidate Message Score: %v\n", best_score)
+    fmt.Printf("Plaintext: %v\n", string(bestMsg))
+    fmt.Printf("Key: %v\n", bestKey)
+    fmt.Printf("Candidate Message Score: %v\n", bestScore)
 }
 
 /* Below code is all for problem 5. I should start breaking these out into
 their own files */
 
-func find_candidate_keysize(input []byte) int {
+func findCandidateKeysize(input []byte) int {
     // HACK FOR NOW just do 2 to 40
-    best_keysize := 0
-    best_hamming := 10000.0
+    bestKeysize := 0
+    bestHamming := 10000.0
     for keysize := 2; keysize <= 40; keysize++ {
         hamming := cryptolib.AverageBlockHammingDist(input, uint(keysize), 10)
 
-        if hamming < best_hamming {
-            best_hamming = hamming
-            best_keysize = keysize
+        if hamming < bestHamming {
+            bestHamming = hamming
+            bestKeysize = keysize
         }
     }
 
-    return best_keysize
+    return bestKeysize
 }
 
-func solve_ch6() {
+func challenge6() {
     // Step 1: Read in the keyfile and decode it from base64
     data, err := ioutil.ReadFile("data/6.txt")
     if err != nil {
@@ -113,7 +103,7 @@ func solve_ch6() {
     data = cryptolib.DecodeBase64(string(data))
 
     // Step 2: Find a likely candidate for the keysize
-    keysize := find_candidate_keysize(data)
+    keysize := findCandidateKeysize(data)
 
     // Step 3: Create transposed blocks for each byte in the key
     var blocks [][]byte = make([][]byte, keysize)
@@ -127,7 +117,11 @@ func solve_ch6() {
     // Step 4: Solve each transposed block as if single-key XOR
     var keys []byte = make([]byte, keysize)
     for i := 0; i < keysize; i++ {
-        _, _, key := decode_single_byte_xor(blocks[i])
+        key, err := cryptolib.CrackSingleByteXor(blocks[i],
+            cryptolib.FrequenciesDifferenceEnglishASCIIScore)
+        if err != nil {
+            fmt.Printf("ERROR: No valid candidate key found for block %v\n", i)
+        }
         keys[i] = key
     }
 
@@ -138,5 +132,5 @@ func solve_ch6() {
 
 // Main function just runs whatever exercise I'm currently working on
 func main() {
-    solve_ch6()
+    challenge6()
 }
