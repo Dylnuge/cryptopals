@@ -22,19 +22,19 @@ Outputs:
 */
 func DecryptXor(cyphertext []byte, key []byte) []byte {
     if len(cyphertext) < len(key) {
-        fmt.Println("ERROR raw_xor sanity check failed, key too long")
+        fmt.Println("ERROR rawXor sanity check failed, key too long")
         return nil
     }
 
-    xor_len := len(cyphertext)
-    out := make([]byte, xor_len)
+    xorLen := len(cyphertext)
+    out := make([]byte, xorLen)
 
-    for i := 0; i < xor_len; i++ {
-        key_pos := i
-        for key_pos >= len(key) {
-            key_pos = key_pos - len(key)
+    for i := 0; i < xorLen; i++ {
+        keyPos := i
+        for keyPos >= len(key) {
+            keyPos = keyPos - len(key)
         }
-        out[i] = cyphertext[i] ^ key[key_pos]
+        out[i] = cyphertext[i] ^ key[keyPos]
     }
 
     return out

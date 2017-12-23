@@ -93,15 +93,15 @@ func NaiveEnglishASCIIScore(text []byte) (float64, error) {
     var score float64 = 0
 
     for i := 0; i < len(text); i++ {
-        eval_char := text[i]
+        evalChar := text[i]
         switch{
         // Cases where character is a standard letter
-        case eval_char >= 'A' && eval_char <= 'Z':
-            eval_char += 32
-            score -= EnglishAlphabetFrequencies[eval_char]
-        case eval_char >= 'a' && eval_char <= 'z':
-            score -= EnglishAlphabetFrequencies[eval_char]
-        case eval_char == ' ':
+        case evalChar >= 'A' && evalChar <= 'Z':
+            evalChar += 32
+            score -= EnglishAlphabetFrequencies[evalChar]
+        case evalChar >= 'a' && evalChar <= 'z':
+            score -= EnglishAlphabetFrequencies[evalChar]
+        case evalChar == ' ':
             // This is a cheap trick, and without it this function is pretty
             // crappy at finding English strings. .16 is (1/6), which comes from
             // the average word length in English being about 5 letters, meaning
@@ -109,13 +109,13 @@ func NaiveEnglishASCIIScore(text []byte) (float64, error) {
             // course, that requires that the plaintext even has spaces to
             // begin with.
             score -= .16
-        case ASCIIAbnormalControlCharacters[eval_char]:
+        case ASCIIAbnormalControlCharacters[evalChar]:
             // Character is in the set of control characters we're assuming
             // will never show up in a valid plaintext, so short-circut reject
             // this candidate. There are problems with this (see the comment
             // below), and our abnormal character set might be outright wrong.
             return 0, errors.New("String has unexpected control characters")
-        case eval_char > 127:
+        case evalChar > 127:
             // Non ASCII codepoint. Short-circut reject this string outright.
             // There are some problems with doing this; attack code needs to be
             // nimble, so this might change later. It's easy to break this
@@ -150,7 +150,7 @@ though.
 func FrequenciesDifferenceEnglishASCIIScore(text []byte) (float64, error) {
     var score float64 = 0
 
-    candidate_count := map[byte]int{}
+    candidateCount := map[byte]int{}
 
     // Sanity check, if we have an empty string, stop and reject
     if len(text) == 0 {
@@ -159,21 +159,21 @@ func FrequenciesDifferenceEnglishASCIIScore(text []byte) (float64, error) {
 
     // Build a map from letters to their counts in the string
     for i:= 0; i < len(text); i++ {
-        eval_char := text[i]
+        evalChar := text[i]
         // If the character is in our rejection set, reject it
-        if ASCIIAbnormalControlCharacters[eval_char] || eval_char > 127 {
+        if ASCIIAbnormalControlCharacters[evalChar] || evalChar > 127 {
             return 0, errors.New("Unexpected or non-ASCII characters")
         }
         // Convert uppercase letters to lowercase letters
-        if eval_char >= 'A' && eval_char <= 'Z' {
-            eval_char += 32
+        if evalChar >= 'A' && evalChar <= 'Z' {
+            evalChar += 32
         }
         // Map lowercase letters into the frequency chart
-        if (eval_char >= 'a' && eval_char <= 'z') || (eval_char == ' ') {
-            candidate_count[eval_char] += 1
+        if (evalChar >= 'a' && evalChar <= 'z') || (evalChar == ' ') {
+            candidateCount[evalChar] += 1
         } else {
             // Count everything else where "NUL" would go
-            candidate_count['\x00'] += 1
+            candidateCount['\x00'] += 1
         }
     }
 
@@ -186,24 +186,24 @@ func FrequenciesDifferenceEnglishASCIIScore(text []byte) (float64, error) {
         // was never found, the map returns the default empty value, which
         // happens to be 0 for numeric types. Experienced go coders probably
         // didn't even blink at this line but it sure scares me.
-        freq := float64(candidate_count[letter]) / float64(len(text))
-        expected_freq := EnglishAlphabetFrequencies[letter]
-        square_diff := (freq - expected_freq) * (freq - expected_freq)
-        score += square_diff
+        freq := float64(candidateCount[letter]) / float64(len(text))
+        expectedFreq := EnglishAlphabetFrequencies[letter]
+        squareDiff := (freq - expectedFreq) * (freq - expectedFreq)
+        score += squareDiff
     }
 
     // Add in the space (TODO dylan make this code cleaner)
     var space byte = ' '
-    freq := float64(candidate_count[space]) / float64(len(text))
-    expected_freq := EnglishAlphabetFrequencies[space]
-    square_diff := (freq - expected_freq) * (freq - expected_freq)
-    score += square_diff
+    freq := float64(candidateCount[space]) / float64(len(text))
+    expectedFreq := EnglishAlphabetFrequencies[space]
+    squareDiff := (freq - expectedFreq) * (freq - expectedFreq)
+    score += squareDiff
 
     // And the error from non-matched characters (who we assume we'll see few
     // if any of), again TODO to clean this up
-    null_freq := float64(candidate_count['\x00']) / float64(len(text))
-    null_square_diff := null_freq * null_freq
-    score += null_square_diff
+    nullFreq := float64(candidateCount['\x00']) / float64(len(text))
+    nullSquareDiff := nullFreq * nullFreq
+    score += nullSquareDiff
 
     return score, nil
 }

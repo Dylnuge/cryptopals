@@ -11,10 +11,10 @@ func HammingDist(a []byte, b []byte) int {
 
     hammingTotal := 0
 
-    for byte_idx := 0; byte_idx < len(a); byte_idx++ {
-        for bit_idx := uint(0); bit_idx < 8; bit_idx++ {
-            mask := byte(1 << bit_idx)
-            if (a[byte_idx] & mask) != (b[byte_idx] & mask) {
+    for byteIdx := 0; byteIdx < len(a); byteIdx++ {
+        for bitIdx := uint(0); bitIdx < 8; bitIdx++ {
+            mask := byte(1 << bitIdx)
+            if (a[byteIdx] & mask) != (b[byteIdx] & mask) {
                 hammingTotal += 1
             }
         }

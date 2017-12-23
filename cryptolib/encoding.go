@@ -17,8 +17,8 @@ formats.
 These will likely be early candidates for putting in their own library. Or just
 removing entirely, since they pretty much just wrap the Go encoding library.
 */
-func DecodeHex(hex_str string) []byte {
-    out, err := hex.DecodeString(hex_str)
+func DecodeHex(hexStr string) []byte {
+    out, err := hex.DecodeString(hexStr)
     if err != nil {
         fmt.Printf("ERROR in hex decoding %v\n", err)
         return nil
@@ -30,8 +30,8 @@ func EncodeHex(raw []byte) string {
     return hex.EncodeToString(raw)
 }
 
-func DecodeBase64(b64_str string) []byte {
-    out, err := base64.StdEncoding.DecodeString(b64_str)
+func DecodeBase64(b64Str string) []byte {
+    out, err := base64.StdEncoding.DecodeString(b64Str)
     if err != nil {
         fmt.Printf("ERROR in hex decoding %v\n", err)
         return nil
