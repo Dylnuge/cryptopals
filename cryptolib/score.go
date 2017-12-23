@@ -4,6 +4,8 @@ package cryptolib
 // There's a neat little citation nest here but I pulled these from Wikipedia
 // https://en.wikipedia.org/wiki/Letter_frequency
 var EnglishAlphabetFrequencies map[byte]float64 = map[byte]float64{
+    // These don't add to 100% because of this line, but it works well enough
+    // for scoring for now.
     ' ': 0.16000, // Finding an actual citation for space frequency is hard...
     'e': 0.12702,
     't': 0.09056,
@@ -111,18 +113,18 @@ func NaiveEnglishASCIIScore(text []byte) float64 {
             // will never show up in a valid plaintext, so short-circut reject
             // this candidate. There are problems with this (see the comment
             // below), and our abnormal character set might be outright wrong.
-            return -1;
+            return -1
         case eval_char > 127:
             // Non ASCII codepoint. Short-circut reject this string outright.
             // There are some problems with doing this; attack code needs to be
             // nimble, so this might change later. It's easy to break this
             // exploit by dropping a "corrupted" character into an otherwise
             // valid plaintext, for instance.
-            return -1;
+            return -1
         }
     }
 
-    return score;
+    return score
 }
 
 
@@ -145,7 +147,7 @@ The naïve function is so clearly worse than this that I might just delete it,
 though.
 */
 func FrequenciesDifferenceEnglishASCIIScore(text []byte) float64 {
-    var score float64 = 0;
+    var score float64 = 0
 
     candidate_count := map[byte]int{}
 
@@ -159,7 +161,7 @@ func FrequenciesDifferenceEnglishASCIIScore(text []byte) float64 {
         eval_char := text[i]
         // If the character is in our rejection set, reject it
         if ASCIIAbnormalControlCharacters[eval_char] || eval_char > 127 {
-            return -1.0;
+            return -1.0
         }
         // Convert uppercase letters to lowercase letters
         if eval_char >= 'A' && eval_char <= 'Z' {
@@ -190,7 +192,7 @@ func FrequenciesDifferenceEnglishASCIIScore(text []byte) float64 {
     }
 
     // Add in the space (TODO dylan make this code cleaner)
-    var space byte = ' ';
+    var space byte = ' '
     freq := float64(candidate_count[space]) / float64(len(text))
     expected_freq := EnglishAlphabetFrequencies[space]
     square_diff := (freq - expected_freq) * (freq - expected_freq)
@@ -202,5 +204,5 @@ func FrequenciesDifferenceEnglishASCIIScore(text []byte) float64 {
     null_square_diff := null_freq * null_freq
     score += null_square_diff
 
-    return score;
+    return score
 }
