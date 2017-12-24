@@ -29,3 +29,27 @@ func TestDecryptAesEcb(t *testing.T) {
         t.Errorf("Decoded plaintext does not match fixture:\n%v\n", plaintext)
     }
 }
+
+func TestEncryptAesEcb(t *testing.T) {
+    plaintext, err := ioutil.ReadFile("fixtures/aes_decrypted.txt")
+    if err != nil {
+        t.Errorf("Test fixture read error %v\n", err)
+    }
+
+    b64Output, err := ioutil.ReadFile("fixtures/aes_encrypted.txt")
+    if err != nil {
+        t.Errorf("Test fixture read error %v\n", err)
+    }
+    expectedCiphertext := DecodeBase64(string(b64Output))
+    key := []byte("YELLOW SUBMARINE")
+
+    // Step 2: Decrypt it using the key provided
+    ciphertext, err := EncryptAesEcb(plaintext, key)
+    if err != nil {
+        t.Errorf("Error occured during decrypt: %v\n", err)
+    }
+
+    if !bytes.Equal(ciphertext, expectedCiphertext) {
+        t.Errorf("Ciphertext does not match fixture:\n%v\n", ciphertext)
+    }
+}

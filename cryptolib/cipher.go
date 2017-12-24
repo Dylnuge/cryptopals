@@ -5,8 +5,28 @@ import (
     "errors"
 )
 
+/** INTERNAL FUNCTIONS **/
+
 /**
-Encrypt or decrypt text using AES in ECB mode.
+Internal function to do ECB block processing
+
+Takes either the encrypt or decrypt function of a block cipher as its second
+argument.
+*/
+func processBlockCipherEcb(text []byte, cipherFunc func(dst, src []byte)) []byte {
+    out := make([]byte, len(text))
+    for block := 0; block < len(text) / aes.BlockSize; block++ {
+        blockStart := block * aes.BlockSize;
+        blockEnd := (block + 1) * aes.BlockSize;
+        cipherFunc(out[blockStart:blockEnd], text[blockStart:blockEnd])
+    }
+    return out
+}
+
+/** PUBLIC FUNCTIONS **/
+
+/**
+Decrypt text using AES in ECB mode.
 
 This function assumes properly padded inputs and will not handle padding.
 
@@ -34,18 +54,42 @@ func DecryptAesEcb(ciphertext []byte, key []byte) ([]byte, error) {
 
     // Create an AES cipher block using the key. AES library will handle size
     // check here and return an error if the key is not a valid length
-    cipher, err := aes.NewCipher(key)
+    cipherBlock, err := aes.NewCipher(key)
     if err != nil {
         return nil, err
     }
 
-    out := make([]byte, len(ciphertext))
-    for block := 0; block < len(ciphertext) / aes.BlockSize; block++ {
-        blockStart := block * aes.BlockSize;
-        blockEnd := (block + 1) * aes.BlockSize;
-        cipher.Decrypt(out[blockStart:blockEnd], ciphertext[blockStart:blockEnd])
+    out := processBlockCipherEcb(ciphertext, cipherBlock.Decrypt)
+    return out, nil
+}
+
+/**
+Encrypt text using AES in ECB mode.
+
+Text will be padded with PKCS#7 padding before being encrypted
+
+IF YOU ARE USING THIS TO ENCRYPT REAL THINGS THOSE THINGS ARE BROKEN.
+
+Inputs:
+    plaintext []byte: The text to encrypt.
+    key []byte: The key for AES. Must be 16, 24, or 32 bytes
+
+Outputs:
+    []byte: The ciphertext produced by encrypting through AES-ECB
+    error: Error if key or text has an invalid size
+*/
+func EncryptAesEcb(plaintext []byte, key []byte) ([]byte, error) {
+    // Create an AES cipher block using the key. AES library will handle size
+    // check here and return an error if the key is not a valid length
+    cipherBlock, err := aes.NewCipher(key)
+    if err != nil {
+        return nil, err
     }
 
+    // Pad the plaintext
+    paddedPlaintext := PKCS7PadMessage(plaintext, uint(len(key)))
+
+    out := processBlockCipherEcb(paddedPlaintext, cipherBlock.Encrypt)
     return out, nil
 }
 
