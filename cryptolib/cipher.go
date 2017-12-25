@@ -195,35 +195,3 @@ func DecryptAesCbc(ciphertext []byte, key []byte, iv []byte) ([]byte, error) {
     return plaintext, nil
 }
 
-/**
-Detect if a given ciphertext was encrypted with AES in ECB mode.
-
-Looks for duplicate blocks to detect the presence of ECB mode. This is easily
-generalizable to _any_ ECB block cipher by just allowing a variable block size.
-*/
-func DetectAesEcbMode(ciphertext []byte) bool {
-    if len(ciphertext) % aes.BlockSize != 0 {
-        // The ciphertext isn't AES encrypted (or is corrupted), so detection
-        // should return false
-        return false
-    }
-
-    // TODO(dylan): I'm worried about this methodology. If a byte array contains
-    // a null character, does go include that in the string, or terminate the
-    // string there?
-    blockFreq := map[string]int {}
-    for blockNum := 0; blockNum < len(ciphertext) / aes.BlockSize; blockNum++ {
-        blockStart := blockNum * aes.BlockSize;
-        blockEnd := (blockNum + 1) * aes.BlockSize;
-        block := ciphertext[blockStart:blockEnd]
-        blockFreq[string(block)] += 1
-    }
-
-    for _, freq := range blockFreq {
-        // Repeating block found
-        if freq > 1 {
-            return true
-        }
-    }
-    return false
-}
