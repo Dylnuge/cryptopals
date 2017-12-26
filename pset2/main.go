@@ -178,13 +178,15 @@ func crackECBMode() {
         blockEnd := blocksize * (block + 1)
         currentCipherblock := currentCiphertext[blockStart:blockEnd]
         // At the end here, we find a lot of "0" blocks, since the padding is
-        // changing. This is OK, so we'll just keep it here. We could also
-        // strictly check that the cipherblock was in the map, and stop when we
-        // hit a point where this isn't working anymore
+        // changing and Go map lookup will default to giving us an "empty" byte.
+        // This is OK, so we'll just keep it here. We could also strictly check
+        // that the cipherblock was in the map, and stop when we hit a point
+        // where this isn't working anymore.
         nextByte := outputs[string(currentCipherblock)]
         knownSecret = append(knownSecret, nextByte)
-        fmt.Printf("Found byte %v, known secret is now %v\n", nextByte, string(knownSecret))
     }
+
+    fmt.Printf("Decryption completed (possibly):\n%v", string(knownSecret))
 }
 
 func main() {
