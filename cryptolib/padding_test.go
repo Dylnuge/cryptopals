@@ -12,7 +12,7 @@ func TestPKCS7Padding(t *testing.T) {
         expect []byte
     }{
         {[]byte("YELLOW SUBMARINE"), 20, []byte("YELLOW SUBMARINE\x04\x04\x04\x04")},
-        {[]byte("TEST"), 4, []byte("TEST")},
+        {[]byte("TEST"), 4, []byte("TEST\x04\x04\x04\x04")},
         {[]byte("HELLO\x00WORLD"), 12, []byte("HELLO\x00WORLD\x01")},
     }
 

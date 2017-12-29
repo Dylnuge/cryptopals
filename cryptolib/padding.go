@@ -14,12 +14,6 @@ func PKCS7PadMessage(message []byte, keysize uint) []byte {
     // Find the number of bytes to pad
     paddingSize := keysize - (uint(len(message)) % keysize)
 
-    // Edge case: if the padding is equal to the keysize, it means there are 0
-    // bytes to pad, so just return
-    if paddingSize == keysize {
-        return message
-    }
-
     // Make the output, initialize it to be a copy of message
     output := make([]byte, uint(len(message)) + paddingSize)
     copy(output, message)
