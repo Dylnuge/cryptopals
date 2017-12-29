@@ -2,6 +2,7 @@ package main
 
 import (
     "bytes"
+    "crypto/aes"
     "fmt"
     "io/ioutil"
     "github.com/dylnuge/cryptopals/cryptolib"
@@ -136,7 +137,7 @@ func challenge8() {
 
     for i := 0; i < len(hexLines); i++ {
         line := cryptolib.DecodeHex(string(hexLines[i]))
-        if cryptolib.DetectAesEcbMode(line) {
+        if cryptolib.DetectEcbMode(line, aes.BlockSize) {
             fmt.Printf("AES detected on line %v\n", cryptolib.EncodeHex(line))
         }
     }
