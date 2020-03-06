@@ -30,6 +30,7 @@ func challenge3() {
     plaintext := cryptolib.DecryptXor(encoded, []byte{key})
 
     fmt.Println("Challenge 3 decoding completed")
+    fmt.Printf("Key was: %d\n", key)
     fmt.Printf("Plaintext: %v\n", string(plaintext))
 }
 
@@ -145,5 +146,7 @@ func challenge8() {
 
 // Main function just runs whatever exercise I'm currently working on
 func main() {
-    challenge8()
+    challenge3()
+    challenge4()
+    challenge6()
 }

@@ -78,7 +78,7 @@ func secretEncrypter(userInput []byte) []byte {
 // Build a map from ciphertexts to plaintext bytes
 func buildCipherMappings(knownBlock []byte, blocksize int) map[string]byte {
     if len(knownBlock) != blocksize - 1 {
-        fmt.Println("Sanity check failed, buildCipherMappings must have all but one byte\n")
+        fmt.Println("Sanity check failed, buildCipherMappings must have all but one byte")
         return nil
     }
 
@@ -191,7 +191,7 @@ func crackECBMode() {
 
 func main() {
     if !bytes.Equal(secretEncrypter([]byte("mytest")), secretEncrypter([]byte("mytest"))) {
-        fmt.Println("Sanity check failed, key is changing between encodings\n")
+        fmt.Println("Sanity check failed, key is changing between encodings")
     }
     crackECBMode()
 }
